@@ -13,6 +13,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
 
+// GET /health - Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // GET /api/tasks - Get all tasks
 app.get('/api/tasks', (req, res) => {
     const { member, category, startDate, endDate } = req.query;

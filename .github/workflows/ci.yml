@@ -1,4 +1,4 @@
-name: CI Tests
+name: CI
 
 on:
   push:
@@ -7,34 +7,149 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  api-tests:
+    name: API tests (fast)
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-    - name: Run API tests
-      run: npm run test:api
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Install Playwright browsers
-      run: npx playwright install --with-deps chromium
+      - name: Run Jest (API) and write JSON
+        run: |
+          mkdir -p test-results
+          npx jest --config jest.config.js --json --outputFile=test-results/jest.json || true
 
-    - name: Run E2E tests
-      run: npm run test
+      - name: Upload Jest report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-report
+          path: test-results/jest.json
 
-    - name: Upload Playwright report
-      uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 7
+  e2e:
+    name: E2E tests (Playwright)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start server (background)
+        run: |
+          mkdir -p test-results
+          node backend/server.js &
+          echo $! > server.pid
+
+      - name: Wait for server health
+        run: |
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000/health >/dev/null 2>&1; then
+              echo "server ready"; break
+            fi
+            sleep 1
+          done
+
+      - name: Run Playwright for browser
+        run: |
+          npx playwright test --project=${{ matrix.browser }} --reporter=json > test-results/playwright-${{ matrix.browser }}.json || true
+
+      - name: Stop server
+        run: |
+          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.browser }}
+          path: test-results/playwright-${{ matrix.browser }}.json
+
+  merge-reports:
+    name: Merge reports and produce XML
+    runs-on: ubuntu-latest
+    needs: [api-tests, e2e]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download Vitest report
+        uses: actions/download-artifact@v4
+        with:Jest report
+        uses: actions/download-artifact@v4
+        with:
+          name: joad Playwright reports
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-chromium
+
+      - name: Download Playwright reports (firefox)
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-firefox
+
+      - name: Download Playwright reports (webkit)
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-webkit
+
+      - name: Merge JSON reports and create combined JSON
+        run: |
+          mkdir -p test-results
+          node -e "const fs=require('fs'); const p='test-results'; let combined={jest:null,playwright:{}}; try{combined.jest=JSON.parse(fs.readFileSync('jest.json','utf8'))}catch(e){}; ['chromium','firefox','webkit'].forEach(b=>{try{combined.playwright[b]=JSON.parse(fs.readFileSync('playwright-'+b+'.json','utf8'))}catch(e){}}); fs.writeFileSync(p+'/combined-report.json',JSON.stringify(combined,null,2))"
+
+      - name: Generate JUnit XML
+        run: node scripts/convert-to-junit.js
+
+      - name: Upload combined report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-report
+          path: |
+            test-results/combined-report.json
+            test-results/combined-report.xml
