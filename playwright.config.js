@@ -8,15 +8,15 @@ module.exports = defineConfig({
     },
     fullyParallel: false,
     workers: 1,
-    reporter: 'html',
+    reporter: process.env.CI ? 'github' : 'html',
     use: {
         baseURL: 'http://localhost:3000',
         trace: 'on-first-retry',
     },
     webServer: {
-        command: 'node server.js',
+        command: 'npm start',
         port: 3000,
-        reuseExistingServer: true,
-        timeout: 30000,
+        reuseExistingServer: !process.env.CI,
+        timeout: 60000,
     },
 });
