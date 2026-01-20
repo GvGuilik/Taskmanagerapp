@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "test": "npx playwright test",
-    "test:api": "jest --config jest.config.js",
+    "test:api": "npx jest --config jest.config.js",
     "test:all": "npm run test:api && npm run test"
   },
   "keywords": ["taskmanager", "nodejs"],
