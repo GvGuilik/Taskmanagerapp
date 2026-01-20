@@ -12,11 +12,14 @@ module.exports = defineConfig({
     use: {
         baseURL: 'http://localhost:3000',
         trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
     },
     webServer: {
         command: 'npm start',
-        port: 3000,
+        url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
-        timeout: 60000,
+        timeout: 120000,
+        stdout: 'pipe',
+        stderr: 'pipe',
     },
 });
