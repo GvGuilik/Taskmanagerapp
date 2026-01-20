@@ -205,10 +205,12 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server draait op http://localhost:${PORT}`);
-    console.log(`API beschikbaar op http://localhost:${PORT}/api/tasks`);
-});
+// Start server only if not imported as module (for tests)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server draait op http://localhost:${PORT}`);
+        console.log(`API beschikbaar op http://localhost:${PORT}/api/tasks`);
+    });
+}
 
 module.exports = app;
