@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gezin Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <h1>🏠 Gezin Task Manager</h1>
+            <div class="family-members">
+                <button class="member-btn active" data-member="all">👨‍👩‍👧‍👦 Iedereen</button>
+                <button class="member-btn" data-member="Susan">👩 Susan</button>
+                <button class="member-btn" data-member="Gido">👨 Gido</button>
+                <button class="member-btn" data-member="Fien">👧 Fien</button>
+                <button class="member-btn" data-member="Luc">👦 Luc</button>
+            </div>
+        </header>
+
+        <div class="week-navigation">
+            <button id="prevWeek" class="nav-btn">◀ Vorige week</button>
+            <h2 id="weekTitle">Week 1 - Januari 2026</h2>
+            <button id="nextWeek" class="nav-btn">Volgende week ▶</button>
+        </div>
+
+        <div class="categories-filter">
+            <span class="filter-label">Categorieën:</span>
+            <button class="category-btn active" data-category="all">Alle</button>
+            <button class="category-btn" data-category="huishouden">🧹 Huishouden</button>
+            <button class="category-btn" data-category="boodschappen">🛒 Boodschappen</button>
+            <button class="category-btn" data-category="school">📚 School</button>
+            <button class="category-btn" data-category="sport">⚽ Sport</button>
+            <button class="category-btn" data-category="werk">💼 Werk</button>
+            <button class="category-btn" data-category="overig">📌 Overig</button>
+        </div>
+
+        <div class="week-grid">
+            <div class="day-column" data-day="0">
+                <div class="day-header">
+                    <span class="day-name">Maandag</span>
+                    <span class="day-date">20 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+            <div class="day-column" data-day="1">
+                <div class="day-header">
+                    <span class="day-name">Dinsdag</span>
+                    <span class="day-date">21 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+            <div class="day-column" data-day="2">
+                <div class="day-header">
+                    <span class="day-name">Woensdag</span>
+                    <span class="day-date">22 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+            <div class="day-column" data-day="3">
+                <div class="day-header">
+                    <span class="day-name">Donderdag</span>
+                    <span class="day-date">23 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+            <div class="day-column" data-day="4">
+                <div class="day-header">
+                    <span class="day-name">Vrijdag</span>
+                    <span class="day-date">24 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+            <div class="day-column" data-day="5">
+                <div class="day-header weekend">
+                    <span class="day-name">Zaterdag</span>
+                    <span class="day-date">25 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+            <div class="day-column" data-day="6">
+                <div class="day-header weekend">
+                    <span class="day-name">Zondag</span>
+                    <span class="day-date">26 jan</span>
+                </div>
+                <div class="tasks-container"></div>
+                <button class="add-task-btn">+ Taak</button>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <span class="stat-number" id="totalTasks">0</span>
+                <span class="stat-label">Totaal</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="completedTasks">0</span>
+                <span class="stat-label">Voltooid</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="pendingTasks">0</span>
+                <span class="stat-label">Te doen</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal voor nieuwe taak -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Nieuwe Taak</h3>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Taak</label>
+                    <input type="text" id="taskTitle" placeholder="Wat moet er gebeuren?" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskMember">Wie</label>
+                    <select id="taskMember" required>
+                        <option value="Susan">👩 Susan</option>
+                        <option value="Gido">👨 Gido</option>
+                        <option value="Fien">👧 Fien</option>
+                        <option value="Luc">👦 Luc</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskCategory">Categorie</label>
+                    <select id="taskCategory" required>
+                        <option value="huishouden">🧹 Huishouden</option>
+                        <option value="boodschappen">🛒 Boodschappen</option>
+                        <option value="school">📚 School</option>
+                        <option value="sport">⚽ Sport</option>
+                        <option value="werk">💼 Werk</option>
+                        <option value="overig">📌 Overig</option>
+                    </select>
+                </div>
+                <input type="hidden" id="taskDay">
+                <button type="submit" class="submit-btn">Toevoegen</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
