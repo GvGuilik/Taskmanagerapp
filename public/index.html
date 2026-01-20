@@ -147,6 +147,20 @@
         </div>
     </div>
 
+    <!-- Modal voor taak kopiëren -->
+    <div id="copyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>📋 Taak Kopiëren</h3>
+            <p class="copy-task-info">Kopieer "<strong id="copyTaskTitle"></strong>" naar:</p>
+            <div class="form-group">
+                <label for="copyDaySelect">Kies een dag</label>
+                <select id="copyDaySelect" required></select>
+            </div>
+            <button id="copyTaskBtn" class="submit-btn">Kopiëren</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

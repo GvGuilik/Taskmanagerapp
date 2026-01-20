@@ -191,7 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="task-header">
                 <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
                 <span class="task-title">${task.title}</span>
-                <button class="task-delete">🗑️</button>
+                <div class="task-actions">
+                    <button class="task-copy" title="Kopieer naar andere dag">📋</button>
+                    <button class="task-delete" title="Verwijderen">🗑️</button>
+                </div>
             </div>
             <div class="task-meta">
                 <span class="task-member ${task.member}">${task.member}</span>
@@ -211,6 +214,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Revert checkbox if update failed
                 checkbox.checked = task.completed;
             }
+        });
+
+        // Copy event
+        const copyBtn = card.querySelector('.task-copy');
+        copyBtn.addEventListener('click', () => {
+            openCopyModal(task);
         });
 
         // Delete event
@@ -281,6 +290,69 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.add('active');
             document.getElementById('taskTitle').focus();
         });
+    });
+
+    // Copy Modal elements
+    const copyModal = document.getElementById('copyModal');
+    const copyCloseBtn = copyModal.querySelector('.close-btn');
+    const copyDaySelect = document.getElementById('copyDaySelect');
+    const copyTaskBtn = document.getElementById('copyTaskBtn');
+    let taskToCopy = null;
+
+    // Open copy modal
+    function openCopyModal(task) {
+        taskToCopy = task;
+        document.getElementById('copyTaskTitle').textContent = task.title;
+        
+        // Populate day options with current week days
+        copyDaySelect.innerHTML = '';
+        const dayNames = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(currentWeekStart.getTime() + i * 86400000);
+            const dateStr = getDateString(date);
+            const option = document.createElement('option');
+            option.value = dateStr;
+            option.textContent = `${dayNames[i]} - ${formatDate(date)}`;
+            if (dateStr === task.day) {
+                option.disabled = true;
+                option.textContent += ' (huidige dag)';
+            }
+            copyDaySelect.appendChild(option);
+        }
+        
+        copyModal.classList.add('active');
+    }
+
+    // Copy task to selected day
+    copyTaskBtn.addEventListener('click', async () => {
+        if (!taskToCopy) return;
+        
+        const newTaskData = {
+            title: taskToCopy.title,
+            member: taskToCopy.member,
+            category: taskToCopy.category,
+            day: copyDaySelect.value,
+            completed: false
+        };
+        
+        const newTask = await createTask(newTaskData);
+        if (newTask) {
+            copyModal.classList.remove('active');
+            taskToCopy = null;
+        }
+    });
+
+    // Event: Close copy modal
+    copyCloseBtn.addEventListener('click', () => {
+        copyModal.classList.remove('active');
+        taskToCopy = null;
+    });
+
+    copyModal.addEventListener('click', (e) => {
+        if (e.target === copyModal) {
+            copyModal.classList.remove('active');
+            taskToCopy = null;
+        }
     });
 
     // Event: Close modal

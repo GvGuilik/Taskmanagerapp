@@ -314,6 +314,12 @@ body {
     color: #64748b;
 }
 
+.task-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.task-copy,
 .task-delete {
     background: none;
     border: none;
@@ -321,14 +327,22 @@ body {
     font-size: 1rem;
     opacity: 0;
     transition: opacity 0.2s;
+    padding: 2px;
 }
 
+.task-card:hover .task-copy,
 .task-card:hover .task-delete {
     opacity: 0.6;
 }
 
+.task-copy:hover,
 .task-delete:hover {
     opacity: 1;
+}
+
+.copy-task-info {
+    margin-bottom: 15px;
+    color: var(--dark);
 }
 
 /* Add Task Button */
